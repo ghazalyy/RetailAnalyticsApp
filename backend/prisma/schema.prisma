@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Model untuk User (Admin/Staff)
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  password String
+  name     String
+  role     String   @default("admin")
+}
+
+// Model Produk (Diambil dari unique Product di CSV) untuk fitur "Cart"
+model Product {
+  id          String   @id @db.VarChar(255)
+  name        String
+  category    String
+  subCategory String
+  price       Decimal  // Estimasi: Sales / Quantity
+  stock       Int      @default(100) // Dummy stock
+  orders      OrderItem[]
+}
+
+// Model Transaksi Penjualan (Gabungan data CSV lama + Transaksi baru dari App)
+model Sale {
+  id          Int      @id @default(autoincrement())
+  orderId     String   // Order ID
+  orderDate   DateTime
+  customerId  String
+  segment     String
+  region      String
+  productId   String
+  category    String
+  sales       Decimal
+  quantity    Int
+  profit      Decimal
+  
+  // Indexing untuk performa query BI dashboard
+  @@index([orderDate])
+  @@index([category])
+}
+
+// Model untuk Transaksi Baru (Cart & Checkout di Flutter)
+model Order {
+  id        Int         @id @default(autoincrement())
+  createdAt DateTime    @default(now())
+  total     Decimal
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  qty       Int
+  price     Decimal
+}
