@@ -7,13 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Model untuk User (Admin/Staff)
+// Model untuk User (Admin/staff)
 model User {
   id       Int      @id @default(autoincrement())
   email    String   @unique
   password String
   name     String
   role     String   @default("admin")
+  createdAt DateTime @default(now())
 }
 
 // Model Produk (Diambil dari unique Product di CSV) untuk fitur "Cart"
