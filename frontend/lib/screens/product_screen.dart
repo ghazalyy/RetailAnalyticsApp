@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/api_service.dart';
 import 'product_detail_screen.dart'; 
+import 'scanner_screen.dart'; 
 import '../main.dart'; 
 import '../models/product_model.dart';
 
@@ -36,6 +37,18 @@ class _ProductScreenState extends State<ProductScreen> {
     }
   }
 
+  void _openScanner() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ScannerScreen()),
+    );
+
+    if (result != null && result is String) {
+      _searchController.text = result;
+      loadProducts(query: result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,8 +72,13 @@ class _ProductScreenState extends State<ProductScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: "Cari nama produk...",
+                hintText: "Cari nama atau scan barcode...",
                 prefixIcon: const Icon(Icons.search),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.qr_code_scanner),
+                  onPressed: _openScanner,
+                  tooltip: "Scan Barcode",
+                ),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 filled: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
@@ -68,6 +86,7 @@ class _ProductScreenState extends State<ProductScreen> {
               onSubmitted: (value) => loadProducts(query: value),
             ),
           ),
+          
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -89,7 +108,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                 child: const Icon(Icons.inventory, color: Colors.blue),
                               ),
                               title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text("${item.category} • Stok: ${item.stock}"),
+                              subtitle: Text("${item.category} • Stok: ${item.stock}\nID: ${item.id}", style: const TextStyle(fontSize: 12)), // Tampilkan ID biar user tau kodenya
                               trailing: Text(price, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
                               onTap: () {
                                 Navigator.push(

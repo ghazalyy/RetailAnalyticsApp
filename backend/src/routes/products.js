@@ -11,9 +11,10 @@ router.get('/', async (req, res) => {
         const skip = (page - 1) * limit;
 
         const whereClause = search ? {
-            name: {
-                contains: search
-            }
+            OR: [
+                { name: { contains: search } },
+                { id: { contains: search } }
+            ]
         } : {};
 
         const [products, totalCount] = await prisma.$transaction([
@@ -36,7 +37,7 @@ router.get('/', async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error(error);
         res.status(500).json({ error: "Gagal mengambil data produk" });
     }
 });
