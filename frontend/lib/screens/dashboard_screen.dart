@@ -48,6 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             final kpi = data['kpi'];
             final trend = data['line_chart_trend'] as Map<String, dynamic>;
             final categories = data['pie_chart_category'] as Map<String, dynamic>;
+            final lowStockCount = data['low_stock_count'] ?? 0;
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
@@ -56,8 +57,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Text("Ringkasan Bisnis", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
-                  
-                  // --- 1. KPI CARDS (Total Sales & Profit) ---
                   Row(
                     children: [
                       Expanded(child: _buildKpiCard("Total Sales", kpi['total_sales'], Colors.blue, Icons.attach_money)),
@@ -66,11 +65,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  _buildKpiCard("Total Transaksi", kpi['total_orders'], Colors.orange, Icons.shopping_cart, isCurrency: false),
-
+                  Row(
+                    children: [
+                      Expanded(child: _buildKpiCard("Total Transaksi", kpi['total_orders'], Colors.orange, Icons.shopping_cart, isCurrency: false)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _buildKpiCard("Stok Menipis", lowStockCount, Colors.red, Icons.warning_amber_rounded, isCurrency: false)),
+                    ],
+                  ),
                   const SizedBox(height: 24),
-                  
-                  // --- 2. SALES TREND (Line Chart) ---
                   Text("Tren Penjualan (Bulanan)", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
                   Container(
@@ -103,10 +105,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // --- 3. SALES PER CATEGORY (Pie Chart) ---
                   Text("Penjualan per Kategori", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
                   Row(
@@ -160,7 +159,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // --- WIDGET HELPERS ---
   Widget _buildKpiCard(String title, dynamic value, Color color, IconData icon, {bool isCurrency = true}) {
     return Container(
       padding: const EdgeInsets.all(16),
