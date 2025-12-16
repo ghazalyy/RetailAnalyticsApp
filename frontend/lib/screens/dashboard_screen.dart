@@ -3,7 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
-import '../main.dart'; // PENTING: Import ini wajib ada untuk akses themeNotifier
+import '../main.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,7 +14,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late Future<Map<String, dynamic>> _dashboardData;
-  // Kita HAPUS variabel lokal _isDarkMode karena sekarang pakai Global Theme
 
   @override
   void initState() {
@@ -35,11 +34,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // WRAPPER UTAMA: Mendengarkan perubahan tema dari themeNotifier
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeNotifier,
       builder: (_, mode, __) {
-        // Logika penentuan warna berdasarkan mode global
         final isDarkMode = mode == ThemeMode.dark;
         final bgColor = isDarkMode ? const Color(0xFF121212) : const Color(0xFFF7F8FA);
         final cardColor = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
@@ -48,8 +45,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return Scaffold(
           backgroundColor: bgColor,
-          
-          // --- BODY ---
           body: SafeArea(
             child: RefreshIndicator(
               onRefresh: () async {
@@ -79,7 +74,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // --- HEADER SECTION (Sinkron Global) ---
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -101,7 +95,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                               ],
                             ),
-                            // Tombol Ganti Tema Global
                             Container(
                               decoration: BoxDecoration(
                                 color: cardColor,
@@ -118,7 +111,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   color: isDarkMode ? Colors.yellow : Colors.grey[800],
                                 ),
                                 onPressed: () {
-                                  // Mengubah tema aplikasi secara GLOBAL
                                   themeNotifier.value = isDarkMode ? ThemeMode.light : ThemeMode.dark;
                                 },
                               ),
@@ -127,7 +119,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // --- KPI CARDS ---
                         Row(
                           children: [
                             Expanded(child: _buildModernCard(
@@ -179,7 +170,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                         const SizedBox(height: 30),
 
-                        // --- CHART TREN ---
                         Text("Tren Penjualan (7 Hari)", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
                         const SizedBox(height: 16),
                         Container(
@@ -226,7 +216,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                         const SizedBox(height: 30),
 
-                        // --- PIE CHART ---
                         Text("Kategori Produk", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
                         const SizedBox(height: 16),
                         Container(
@@ -289,7 +278,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // --- WIDGET HELPER ---
   Widget _buildModernCard({
     required String title, 
     required dynamic value, 
@@ -349,7 +337,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // --- LOGIC CHART ---
   List<FlSpot> _generateSpots(Map<String, dynamic> trendData) {
     List<FlSpot> spots = [];
     int index = 0;

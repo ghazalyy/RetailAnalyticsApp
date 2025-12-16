@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
 import '../models/product_model.dart';
-import '../main.dart'; // Pastikan import ini ada untuk akses themeNotifier
+import '../main.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -23,7 +23,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     
     double total = widget.product.price * _qty;
 
-    // Validasi Stok Sederhana
     if (_qty > widget.product.stock) {
       setState(() => _isProcessing = false);
       if (mounted) {
@@ -42,7 +41,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Transaksi Berhasil!"), backgroundColor: Colors.green),
       );
-      Navigator.pop(context, true); // Kembali & refresh data jika perlu
+      Navigator.pop(context, true);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Transaksi Gagal."), backgroundColor: Colors.red),
@@ -55,7 +54,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final product = widget.product;
     final priceFormatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     
-    // Total harga dinamis berdasarkan qty
     final double estimatedTotal = product.price * _qty;
 
     return ValueListenableBuilder<ThemeMode>(
@@ -90,7 +88,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // --- GAMBAR PRODUK (Placeholder) ---
                       Container(
                         height: 250,
                         width: double.infinity,
@@ -108,7 +105,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // --- INFORMASI PRODUK ---
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,7 +134,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ],
                             ),
                           ),
-                          // Badge Stok
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
@@ -161,7 +156,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       Divider(color: Colors.grey.withOpacity(0.2)),
                       const SizedBox(height: 16),
 
-                      // --- DESKRIPSI (Opsional / Dummy) ---
                       Text(
                         "Harga Satuan",
                         style: GoogleFonts.poppins(fontSize: 14, color: subTextColor),
@@ -180,7 +174,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
 
-              // --- BOTTOM ACTION BAR ---
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -193,11 +186,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Row Quantity & Total
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Quantity Selector
                         Container(
                           decoration: BoxDecoration(
                             color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
@@ -216,7 +207,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 child: Text("$_qty", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
                               ),
                               IconButton(
-                                onPressed: () => setState(() => _qty < product.stock ? _qty++ : null), // Limit by stock
+                                onPressed: () => setState(() => _qty < product.stock ? _qty++ : null),
                                 icon: Icon(Icons.add, color: textColor),
                                 splashRadius: 20,
                               ),
@@ -224,7 +215,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                         ),
                         
-                        // Total Estimation
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
@@ -239,7 +229,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Tombol Aksi
                     SizedBox(
                       width: double.infinity,
                       height: 55,

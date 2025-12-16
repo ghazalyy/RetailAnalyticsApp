@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
-import '../main.dart'; // Import main.dart untuk akses themeNotifier
+import '../main.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,22 +14,22 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
   bool _isLoading = false;
-  bool _isObscure = true; // State untuk sembunyikan/lihat password
+  bool _isObscure = true;
 
   void _doLogin() async {
     if (_emailController.text.isEmpty || _passController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Email dan Password harus diisi"), backgroundColor: Colors.orange),
+        const SnackBar(
+          content: Text("Email dan Password harus diisi"),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      await ApiService.login(
-        _emailController.text,
-        _passController.text,
-      );
+      await ApiService.login(_emailController.text, _passController.text);
 
       if (mounted) {
         Navigator.pushReplacement(
@@ -40,7 +40,9 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Login gagal: ${e.toString().replaceAll('Exception:', '')}"),
+          content: Text(
+            "Login gagal: ${e.toString().replaceAll('Exception:', '')}",
+          ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -70,7 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ===== LOGO & HEADER =====
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -78,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.bar_chart_rounded, // Ikon toko yang lebih modern
+                      Icons.bar_chart_rounded,
                       size: 80,
                       color: Colors.blueAccent,
                     ),
@@ -103,8 +104,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 40),
-
-                  // ===== INPUT EMAIL =====
                   _buildModernInput(
                     controller: _emailController,
                     label: "Email Address",
@@ -116,7 +115,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 20),
 
-                  // ===== INPUT PASSWORD =====
                   _buildModernInput(
                     controller: _passController,
                     label: "Password",
@@ -127,8 +125,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
 
                   const SizedBox(height: 40),
-
-                  // ===== BUTTON LOGIN =====
                   SizedBox(
                     height: 55,
                     child: ElevatedButton(
@@ -161,14 +157,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
-                  // Footer Version
+
                   Text(
                     "Retail App v1.0.0",
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(color: subTextColor, fontSize: 12),
+                    style: GoogleFonts.poppins(
+                      color: subTextColor,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -179,7 +177,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // --- WIDGET HELPER UNTUK INPUT FIELD ---
   Widget _buildModernInput({
     required TextEditingController controller,
     required String label,
@@ -225,7 +222,10 @@ class _LoginScreenState extends State<LoginScreen> {
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 20,
+        ),
       ),
     );
   }

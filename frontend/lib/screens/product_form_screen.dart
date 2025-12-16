@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
 import '../models/product_model.dart';
-import '../main.dart'; 
+import '../main.dart';
 
 class ProductFormScreen extends StatefulWidget {
-  final Product? product; 
+  final Product? product;
 
   const ProductFormScreen({super.key, this.product});
 
@@ -25,9 +25,15 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.product?.name ?? "");
-    _categoryController = TextEditingController(text: widget.product?.category ?? "");
-    _priceController = TextEditingController(text: widget.product?.price.toString() ?? "");
-    _stockController = TextEditingController(text: widget.product?.stock.toString() ?? "");
+    _categoryController = TextEditingController(
+      text: widget.product?.category ?? "",
+    );
+    _priceController = TextEditingController(
+      text: widget.product?.price.toString() ?? "",
+    );
+    _stockController = TextEditingController(
+      text: widget.product?.stock.toString() ?? "",
+    );
   }
 
   void _saveProduct() async {
@@ -37,26 +43,41 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     bool success;
     String name = _nameController.text;
     String category = _categoryController.text;
-    String priceClean = _priceController.text.replaceAll(RegExp(r'[^0-9.]'), '');
+    String priceClean = _priceController.text.replaceAll(
+      RegExp(r'[^0-9.]'),
+      '',
+    );
     double price = double.tryParse(priceClean) ?? 0;
     int stock = int.tryParse(_stockController.text) ?? 0;
 
     if (widget.product == null) {
       success = await ApiService.addProduct(name, category, price, stock);
     } else {
-      success = await ApiService.updateProduct(widget.product!.id, name, category, price, stock);
+      success = await ApiService.updateProduct(
+        widget.product!.id,
+        name,
+        category,
+        price,
+        stock,
+      );
     }
 
     setState(() => _isLoading = false);
 
     if (success && mounted) {
-      Navigator.pop(context, true); 
+      Navigator.pop(context, true);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Berhasil disimpan"), backgroundColor: Colors.green)
+        const SnackBar(
+          content: Text("Berhasil disimpan"),
+          backgroundColor: Colors.green,
+        ),
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Gagal menyimpan"), backgroundColor: Colors.red)
+        const SnackBar(
+          content: Text("Gagal menyimpan"),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -69,8 +90,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       valueListenable: themeNotifier,
       builder: (_, mode, __) {
         final isDarkMode = mode == ThemeMode.dark;
-        final bgColor = isDarkMode ? const Color(0xFF121212) : const Color(0xFFF7F8FA);
-        final cardColor = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
+        final bgColor = isDarkMode
+            ? const Color(0xFF121212)
+            : const Color(0xFFF7F8FA);
         final textColor = isDarkMode ? Colors.white : Colors.black87;
         final inputFillColor = isDarkMode ? Colors.grey[800] : Colors.grey[100];
 
@@ -85,7 +107,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             ),
             title: Text(
               isEditing ? "Edit Produk" : "Tambah Produk",
-              style: GoogleFonts.poppins(color: textColor, fontWeight: FontWeight.bold),
+              style: GoogleFonts.poppins(
+                color: textColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             centerTitle: true,
           ),
@@ -96,9 +121,16 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Informasi Dasar", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
+                  Text(
+                    "Informasi Dasar",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
                   const SizedBox(height: 16),
-                  
+
                   _buildCustomField(
                     controller: _nameController,
                     label: "Nama Produk",
@@ -154,18 +186,31 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueAccent,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         elevation: 5,
                         shadowColor: Colors.blueAccent.withOpacity(0.4),
                       ),
-                      child: _isLoading 
-                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : Text(
-                            "SIMPAN PRODUK", 
-                            style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1),
-                          ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              "SIMPAN PRODUK",
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -193,7 +238,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         labelText: label,
         labelStyle: GoogleFonts.poppins(color: Colors.grey),
         prefixText: prefixText,
-        prefixStyle: GoogleFonts.poppins(color: textColor, fontWeight: FontWeight.bold),
+        prefixStyle: GoogleFonts.poppins(
+          color: textColor,
+          fontWeight: FontWeight.bold,
+        ),
         prefixIcon: Icon(icon, color: Colors.blueAccent),
         filled: true,
         fillColor: fillColor,
@@ -209,7 +257,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ),
       ),
     );
   }
