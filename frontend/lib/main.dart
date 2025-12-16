@@ -5,12 +5,14 @@ import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/product_screen.dart';
 import 'services/api_service.dart';
+import 'screens/splash_screen.dart';
+
+// Variabel Global untuk Tema (Agar bisa diakses dari mana saja)
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 void main() {
   runApp(const MyApp());
 }
-
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -24,40 +26,67 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: 'Retail App',
           themeMode: mode,
-          // --- Konfigurasi Tema Terang ---
+          
+          // --- TEMA TERANG (Light Mode) ---
           theme: ThemeData(
             brightness: Brightness.light,
             useMaterial3: true,
+            scaffoldBackgroundColor: const Color(0xFFF7F8FA), // Warna abu-abu muda bersih
             colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.blue, 
-              brightness: Brightness.light
+              seedColor: Colors.blueAccent,
+              brightness: Brightness.light,
+              surface: Colors.white, // Warna kartu/permukaan
             ),
             textTheme: GoogleFonts.poppinsTextTheme(),
             appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.white,
+              backgroundColor: Color(0xFFF7F8FA), // Samakan dengan background
               elevation: 0,
-              iconTheme: IconThemeData(color: Colors.black),
-              titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+              iconTheme: IconThemeData(color: Colors.black87),
+              titleTextStyle: TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            // Style Navigasi Bawah Terang
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+              backgroundColor: Colors.white,
+              selectedItemColor: Colors.blueAccent,
+              unselectedItemColor: Colors.grey,
+              elevation: 10,
             ),
           ),
-          // --- Konfigurasi Tema Gelap ---
+
+          // --- TEMA GELAP (Dark Mode) ---
           darkTheme: ThemeData(
             brightness: Brightness.dark,
             useMaterial3: true,
+            scaffoldBackgroundColor: const Color(0xFF121212), // Hitam pekat modern
             colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.blue, 
-              brightness: Brightness.dark
+              seedColor: Colors.blueAccent,
+              brightness: Brightness.dark,
+              surface: const Color(0xFF1E1E1E), // Warna kartu gelap
             ),
             textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
-            scaffoldBackgroundColor: const Color(0xFF121212),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFF121212),
+              elevation: 0,
+              iconTheme: IconThemeData(color: Colors.white),
+              titleTextStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            // Style Navigasi Bawah Gelap
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+              backgroundColor: Color(0xFF1E1E1E),
+              selectedItemColor: Colors.blueAccent,
+              unselectedItemColor: Colors.grey,
+              elevation: 10,
+            ),
           ),
-          home: const CheckAuth(),
+          
+          home: const SplashScreen(),
         );
       },
     );
   }
 }
 
+// --- LOGIKA CEK LOGIN ---
 class CheckAuth extends StatefulWidget {
   const CheckAuth({super.key});
   @override
@@ -77,15 +106,9 @@ class _CheckAuthState extends State<CheckAuth> {
 
     if (mounted) {
       if (isLoggedIn) {
-        Navigator.pushReplacement(
-          context, 
-          MaterialPageRoute(builder: (_) => const MainLayout())
-        );
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainLayout()));
       } else {
-        Navigator.pushReplacement(
-          context, 
-          MaterialPageRoute(builder: (_) => const LoginScreen())
-        );
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
       }
     }
   }
@@ -95,6 +118,8 @@ class _CheckAuthState extends State<CheckAuth> {
     return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
+
+// --- LAYOUT UTAMA (NAVIGASI) ---
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
 
@@ -118,21 +143,39 @@ class _MainLayoutState extends State<MainLayout> {
     setState(() {
       _userRole = prefs.getString('user_role') ?? "staff";
       _isLoadingRole = false;
+      // Jika bukan admin, pastikan index kembali ke 0 (karena staff cuma punya 1 menu)
       if (_userRole != 'admin') {
         _currentIndex = 0;
       }
     });
   }
 
-  // Fungsi Logout
   void _logout() async {
-    await ApiService.logout(); 
-    if (mounted) {
-      Navigator.pushAndRemoveUntil(
-        context, 
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (route) => false 
-      );
+    // Tampilkan dialog konfirmasi biar keren
+    bool confirm = await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text("Konfirmasi Logout", style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        content: Text("Apakah anda yakin ingin keluar aplikasi?", style: GoogleFonts.poppins()),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Batal")),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true), 
+            child: const Text("Logout", style: TextStyle(color: Colors.red))
+          ),
+        ],
+      ),
+    ) ?? false;
+
+    if (confirm) {
+      await ApiService.logout(); 
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context, 
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false 
+        );
+      }
     }
   }
 
@@ -142,63 +185,72 @@ class _MainLayoutState extends State<MainLayout> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // --- LOGIKA MENU BERDASARKAN ROLE ---
+    // --- LIST MENU ---
     List<Widget> screens = [];
-    List<NavigationDestination> navDestinations = [];
+    List<BottomNavigationBarItem> navItems = [];
 
     if (_userRole == "admin") {
       screens = [
         const DashboardScreen(),
         const ProductScreen(),
       ];
-      navDestinations = const [
-        NavigationDestination(
+      navItems = const [
+        BottomNavigationBarItem(
           icon: Icon(Icons.dashboard_outlined), 
-          selectedIcon: Icon(Icons.dashboard), 
+          activeIcon: Icon(Icons.dashboard),
           label: 'Dashboard'
         ),
-        NavigationDestination(
+        BottomNavigationBarItem(
           icon: Icon(Icons.inventory_2_outlined), 
-          selectedIcon: Icon(Icons.inventory_2), 
+          activeIcon: Icon(Icons.inventory_2),
           label: 'Produk'
         ),
       ];
     } else {
+      // Staff hanya melihat Produk/Kasir
       screens = [
         const ProductScreen(),
       ];
-      navDestinations = const [
-        NavigationDestination(
-          icon: Icon(Icons.inventory_2_outlined), 
-          selectedIcon: Icon(Icons.inventory_2), 
-          label: 'Kasir / Produk'
+      navItems = const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.point_of_sale), 
+          activeIcon: Icon(Icons.point_of_sale),
+          label: 'Kasir & Produk'
         ),
       ];
     }
 
     return Scaffold(
+      // AppBar dibuat transparan/menyatu dengan background agar Header Dashboard lebih menonjol
       appBar: AppBar(
         title: Text(
-          _userRole == 'admin' ? "Admin Panel" : "Staff Area",
+          _userRole == 'admin' ? "" : "Staff Area", // Kosongkan judul untuk admin (karena ada di Dashboard)
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.red),
+            icon: const Icon(Icons.logout_rounded, color: Colors.red),
             tooltip: "Logout",
             onPressed: _logout,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
         ],
       ),
       
       body: screens[_currentIndex],
       
-      bottomNavigationBar: navDestinations.length > 1 
-          ? NavigationBar(
-              selectedIndex: _currentIndex,
-              onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
-              destinations: navDestinations,
+      // Menggunakan BottomNavigationBar (Klasik) agar tidak ada background "kapsul"
+      // Hanya ditampilkan jika menu lebih dari 1
+      bottomNavigationBar: navItems.length > 1 
+          ? BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (idx) => setState(() => _currentIndex = idx),
+              items: navItems,
+              type: BottomNavigationBarType.fixed,
+              showSelectedLabels: true,
+              showUnselectedLabels: true,
+              selectedLabelStyle: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold),
+              unselectedLabelStyle: GoogleFonts.poppins(fontSize: 12),
             )
           : null, 
     );
