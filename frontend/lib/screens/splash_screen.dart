@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
-import '../main.dart'; // MainLayout
+import '../main.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,7 +20,6 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Animasi titik-titik
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -57,21 +56,17 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // warna utama putih
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // ICON GRAFIK
             Icon(
               Icons.bar_chart_rounded,
               size: 64,
               color: Colors.blue.shade700,
             ),
-
             const SizedBox(height: 16),
-
-            // NAMA APLIKASI
             Text(
               'RetailAnalytics',
               style: TextStyle(
@@ -80,10 +75,7 @@ class _SplashScreenState extends State<SplashScreen>
                 color: Colors.blue.shade700,
               ),
             ),
-
             const SizedBox(height: 24),
-
-            // ANIMASI TITIK-TITIK
             AnimatedBuilder(
               animation: _dotAnimation,
               builder: (_, __) {
