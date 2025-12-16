@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
 import '../models/product_model.dart';
-import '../main.dart'; // Pastikan import ini ada untuk akses themeNotifier
+import '../main.dart'; 
 
 class ProductFormScreen extends StatefulWidget {
   final Product? product; 
@@ -37,7 +37,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     bool success;
     String name = _nameController.text;
     String category = _categoryController.text;
-    // Hapus karakter non-digit jika user tidak sengaja memasukkan format uang
     String priceClean = _priceController.text.replaceAll(RegExp(r'[^0-9.]'), '');
     double price = double.tryParse(priceClean) ?? 0;
     int stock = int.tryParse(_stockController.text) ?? 0;
@@ -100,7 +99,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   Text("Informasi Dasar", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
                   const SizedBox(height: 16),
                   
-                  // --- NAMA PRODUK ---
                   _buildCustomField(
                     controller: _nameController,
                     label: "Nama Produk",
@@ -110,7 +108,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // --- KATEGORI ---
                   _buildCustomField(
                     controller: _categoryController,
                     label: "Kategori",
@@ -120,7 +117,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // --- HARGA & STOK (Side by Side) ---
                   Row(
                     children: [
                       Expanded(
@@ -150,7 +146,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
                   const SizedBox(height: 40),
 
-                  // --- TOMBOL SIMPAN ---
                   SizedBox(
                     width: double.infinity,
                     height: 55,
@@ -180,7 +175,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     );
   }
 
-  // --- Widget Helper untuk Input Field ---
   Widget _buildCustomField({
     required TextEditingController controller,
     required String label,

@@ -6,7 +6,7 @@ import '../services/api_service.dart';
 import 'product_detail_screen.dart';
 import 'product_form_screen.dart'; 
 import 'scanner_screen.dart';
-import '../main.dart'; // Import themeNotifier
+import '../main.dart'; 
 import '../models/product_model.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -19,7 +19,7 @@ class ProductScreen extends StatefulWidget {
 class _ProductScreenState extends State<ProductScreen> {
   List<Product> products = [];
   bool isLoading = true;
-  String userRole = "staff"; // Default role
+  String userRole = "staff"; 
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -29,7 +29,6 @@ class _ProductScreenState extends State<ProductScreen> {
     loadProducts();
   }
 
-  // Cek Role (Admin/Staff) dari penyimpanan lokal
   void _checkRole() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -120,18 +119,16 @@ class _ProductScreenState extends State<ProductScreen> {
             ],
           ),
           
-          // --- LOGIKA TOMBOL TAMBAH (Hanya Admin) ---
           floatingActionButton: userRole == 'admin'
               ? FloatingActionButton(
                   backgroundColor: Colors.blueAccent,
                   onPressed: () => _openForm(),
                   child: const Icon(Icons.add, color: Colors.white),
                 )
-              : null, // Staff tidak melihat tombol ini
+              : null, 
               
           body: Column(
             children: [
-              // --- SEARCH BAR ---
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                 child: Container(
@@ -162,7 +159,6 @@ class _ProductScreenState extends State<ProductScreen> {
                 ),
               ),
 
-              // --- LIST PRODUK ---
               Expanded(
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator())
@@ -187,7 +183,6 @@ class _ProductScreenState extends State<ProductScreen> {
                                 ),
                                 child: InkWell(
                                   onTap: () async {
-                                    // Navigasi ke Detail Produk (Untuk Transaksi)
                                     bool? refresh = await Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetailScreen(product: item)));
                                     if (refresh == true) loadProducts();
                                   },
@@ -196,7 +191,6 @@ class _ProductScreenState extends State<ProductScreen> {
                                     padding: const EdgeInsets.all(16.0),
                                     child: Row(
                                       children: [
-                                        // 1. Gambar/Icon Produk
                                         Container(
                                           width: 60, height: 60,
                                           decoration: BoxDecoration(
@@ -207,7 +201,6 @@ class _ProductScreenState extends State<ProductScreen> {
                                         ),
                                         const SizedBox(width: 16),
                                         
-                                        // 2. Info Nama & Harga
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,11 +224,9 @@ class _ProductScreenState extends State<ProductScreen> {
                                           ),
                                         ),
 
-                                        // 3. Stok & Tombol Admin (Jika Ada)
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.end,
                                           children: [
-                                            // Badge Stok
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                               decoration: BoxDecoration(
@@ -253,9 +244,6 @@ class _ProductScreenState extends State<ProductScreen> {
                                               ),
                                             ),
                                             
-                                            // --- LOGIKA ADMIN ONLY ---
-                                            // Jika Admin -> Tampilkan tombol Edit & Hapus
-                                            // Jika Staff -> Kosong (SizedBox)
                                             if (userRole == 'admin') ...[
                                               const SizedBox(height: 8),
                                               Row(
@@ -278,8 +266,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                                 ],
                                               )
                                             ] else ...[
-                                               // Staff tidak melihat apa-apa disini
-                                               const SizedBox(height: 20), // Spacer agar layout seimbang
+                                               const SizedBox(height: 20), 
                                             ]
                                           ],
                                         )

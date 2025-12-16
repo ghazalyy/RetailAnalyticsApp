@@ -6,15 +6,17 @@ from sqlalchemy import create_engine
 import datetime
 
 DB_USER = "root"
-DB_PASS = ""       
+DB_PASS = ""
 DB_HOST = "localhost"
 DB_PORT = "3306"
-DB_NAME = "db_retail" 
+DB_NAME = "db_retail"
 
 DB_CONNECTION_STR = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 try:
-    csv_file = 'train.csv'
+    csv_file = os.path.join(script_dir, 'train.csv')
     
     if not os.path.exists(csv_file):
         print(f"Error: File '{csv_file}' tidak ditemukan.")
@@ -45,7 +47,7 @@ column_mapping = {
 df = df.rename(columns=column_mapping)
 
 df['quantity'] = np.random.randint(1, 6, df.shape[0])
-margin = np.random.uniform(0.10, 0.30, df.shape[0]) 
+margin = np.random.uniform(0.10, 0.30, df.shape[0])
 df['profit'] = df['sales'] * margin
 
 df['orderDate'] = pd.to_datetime(df['orderDate'], dayfirst=True, errors='coerce')
@@ -63,7 +65,7 @@ try:
     
     products_to_db = products_df[['productId', 'productName', 'category', 'subCategory', 'price']].copy()
     products_to_db.columns = ['id', 'name', 'category', 'subCategory', 'price']
-    products_to_db['stock'] = 100 
+    products_to_db['stock'] = 100
     
     products_to_db.to_sql('Product', engine, if_exists='append', index=False, chunksize=1000)
     print(f"Berhasil simpan {len(products_to_db)} produk.")
@@ -91,7 +93,7 @@ summary_data = {
 
 summary_data["line_chart_trend"] = {str(k): v for k, v in summary_data["line_chart_trend"].items()}
 
-output_dir = 'backend'
+output_dir = os.path.join(os.path.dirname(script_dir), 'backend')
 os.makedirs(output_dir, exist_ok=True)
 output_path = os.path.join(output_dir, 'dashboard_summary.json')
 
