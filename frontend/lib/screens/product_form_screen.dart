@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
 import '../models/product_model.dart';
 import '../main.dart';
@@ -19,6 +21,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   late TextEditingController _categoryController;
   late TextEditingController _priceController;
   late TextEditingController _stockController;
+  File? _imageFile;
   bool _isLoading = false;
 
   @override
@@ -36,6 +39,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     );
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() => _imageFile = File(picked.path));
+    }
+  }
+
   void _saveProduct() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
@@ -51,7 +62,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     int stock = int.tryParse(_stockController.text) ?? 0;
 
     if (widget.product == null) {
-      success = await ApiService.addProduct(name, category, price, stock);
+      success = await ApiService.addProduct(name, category, price, stock, _imageFile);
     } else {
       success = await ApiService.updateProduct(
         widget.product!.id,
@@ -59,6 +70,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         category,
         price,
         stock,
+        _imageFile,
       );
     }
 
@@ -121,6 +133,38 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Center(
+                    child: GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        height: 120,
+                        width: 120,
+                        decoration: BoxDecoration(
+                          color: inputFillColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                          image: _imageFile != null
+                              ? DecorationImage(
+                                  image: FileImage(_imageFile!),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                        ),
+                        child: _imageFile == null
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_a_photo, color: Colors.blueAccent, size: 30),
+                                  const SizedBox(height: 8),
+                                  Text("Foto Produk", style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
+                                ],
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
                   Text(
                     "Informasi Dasar",
                     style: GoogleFonts.poppins(

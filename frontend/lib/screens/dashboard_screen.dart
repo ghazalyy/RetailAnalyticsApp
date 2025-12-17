@@ -21,6 +21,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _dashboardData = ApiService.fetchDashboard();
   }
 
+  void _downloadReport() async {
+    try {
+      await ApiService.downloadReport();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Sedang mengunduh laporan...")),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Gagal download: $e"), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   String formatCurrency(num value) {
     return NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(value);
   }
@@ -95,25 +112,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                               ],
                             ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: cardColor,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: isDarkMode ? Colors.grey[800]! : Colors.transparent),
-                                boxShadow: [
-                                  if (!isDarkMode)
-                                    BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))
-                                ]
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                                  color: isDarkMode ? Colors.yellow : Colors.grey[800],
+                            Row(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: cardColor,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: isDarkMode ? Colors.grey[800]! : Colors.transparent),
+                                    boxShadow: [
+                                      if (!isDarkMode)
+                                        BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))
+                                    ]
+                                  ),
+                                  child: IconButton(
+                                    icon: Icon(
+                                      Icons.download_rounded,
+                                      color: isDarkMode ? Colors.white : Colors.grey[800],
+                                    ),
+                                    tooltip: "Download Laporan",
+                                    onPressed: _downloadReport,
+                                  ),
                                 ),
-                                onPressed: () {
-                                  themeNotifier.value = isDarkMode ? ThemeMode.light : ThemeMode.dark;
-                                },
-                              ),
+                                const SizedBox(width: 12),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: cardColor,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: isDarkMode ? Colors.grey[800]! : Colors.transparent),
+                                    boxShadow: [
+                                      if (!isDarkMode)
+                                        BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))
+                                    ]
+                                  ),
+                                  child: IconButton(
+                                    icon: Icon(
+                                      isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                                      color: isDarkMode ? Colors.yellow : Colors.grey[800],
+                                    ),
+                                    onPressed: () {
+                                      themeNotifier.value = isDarkMode ? ThemeMode.light : ThemeMode.dark;
+                                    },
+                                  ),
+                                ),
+                              ],
                             )
                           ],
                         ),

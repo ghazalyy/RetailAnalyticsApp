@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import 'product_detail_screen.dart';
 import 'product_form_screen.dart';
 import 'scanner_screen.dart';
+import 'cart_screen.dart';
 import '../main.dart';
 import '../models/product_model.dart';
+import '../providers/cart_provider.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -50,8 +53,7 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   void _deleteProduct(String id) async {
-    bool confirm =
-        await showDialog(
+    bool confirm = await showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
             title: Text(
@@ -120,9 +122,7 @@ class _ProductScreenState extends State<ProductScreen> {
       valueListenable: themeNotifier,
       builder: (_, mode, __) {
         final isDarkMode = mode == ThemeMode.dark;
-        final bgColor = isDarkMode
-            ? const Color(0xFF121212)
-            : const Color(0xFFF7F8FA);
+        final bgColor = isDarkMode ? const Color(0xFF121212) : const Color(0xFFF7F8FA);
         final cardColor = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
         final textColor = isDarkMode ? Colors.white : Colors.black87;
         final subTextColor = isDarkMode ? Colors.grey[400] : Colors.grey[600];
@@ -147,22 +147,36 @@ class _ProductScreenState extends State<ProductScreen> {
                   color: textColor,
                 ),
                 onPressed: () {
-                  themeNotifier.value = isDarkMode
-                      ? ThemeMode.light
-                      : ThemeMode.dark;
+                  themeNotifier.value = isDarkMode ? ThemeMode.light : ThemeMode.dark;
                 },
               ),
             ],
           ),
-
           floatingActionButton: userRole == 'admin'
               ? FloatingActionButton(
                   backgroundColor: Colors.blueAccent,
                   onPressed: () => _openForm(),
                   child: const Icon(Icons.add, color: Colors.white),
                 )
-              : null,
-
+              : Consumer<CartProvider>(
+                  builder: (context, cart, child) {
+                    if (cart.items.isEmpty) return const SizedBox();
+                    return FloatingActionButton.extended(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const CartScreen()),
+                        );
+                      },
+                      backgroundColor: Colors.green,
+                      icon: const Icon(Icons.shopping_cart, color: Colors.white),
+                      label: Text(
+                        "${cart.itemCount} Item | ${formatCurrency(cart.totalAmount)}",
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                      ),
+                    );
+                  },
+                ),
           body: Column(
             children: [
               Padding(
@@ -204,153 +218,109 @@ class _ProductScreenState extends State<ProductScreen> {
                   ),
                 ),
               ),
-
               Expanded(
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : products.isEmpty
-                    ? Center(
-                        child: Text(
-                          "Produk tidak ditemukan",
-                          style: GoogleFonts.poppins(color: subTextColor),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        itemCount: products.length,
-                        itemBuilder: (context, index) {
-                          final item = products[index];
-                          bool isLowStock = item.stock < 10;
-
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(
-                              color: cardColor,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                if (!isDarkMode)
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.05),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                              ],
+                        ? Center(
+                            child: Text(
+                              "Produk tidak ditemukan",
+                              style: GoogleFonts.poppins(color: subTextColor),
                             ),
-                            child: InkWell(
-                              onTap: () async {
-                                bool? refresh = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        ProductDetailScreen(product: item),
-                                  ),
-                                );
-                                if (refresh == true) loadProducts();
-                              },
-                              borderRadius: BorderRadius.circular(20),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 60,
-                                      height: 60,
-                                      decoration: BoxDecoration(
-                                        color: Colors.blueAccent.withOpacity(
-                                          0.1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(15),
-                                      ),
-                                      child: const Icon(
-                                        Icons.inventory_2_outlined,
-                                        color: Colors.blueAccent,
-                                        size: 30,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            itemCount: products.length,
+                            itemBuilder: (context, index) {
+                              final item = products[index];
+                              bool isLowStock = item.stock < 10;
 
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            item.name,
-                                            style: GoogleFonts.poppins(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                              color: textColor,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            item.category,
-                                            style: GoogleFonts.poppins(
-                                              color: subTextColor,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            formatCurrency(item.price),
-                                            style: GoogleFonts.poppins(
-                                              color: Colors.green,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                decoration: BoxDecoration(
+                                  color: cardColor,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    if (!isDarkMode)
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.05),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
                                       ),
-                                    ),
-
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
+                                  ],
+                                ),
+                                child: InkWell(
+                                  onTap: () async {
+                                    bool? refresh = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            ProductDetailScreen(product: item),
+                                      ),
+                                    );
+                                    if (refresh == true) loadProducts();
+                                  },
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Row(
                                       children: [
                                         Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 4,
-                                          ),
+                                          width: 60,
+                                          height: 60,
                                           decoration: BoxDecoration(
-                                            color: isLowStock
-                                                ? Colors.red.withOpacity(0.1)
-                                                : Colors.grey.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            border: isLowStock
-                                                ? Border.all(
-                                                    color: Colors.red
-                                                        .withOpacity(0.5),
-                                                  )
-                                                : null,
+                                            color: Colors.blueAccent.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(15),
                                           ),
-                                          child: Text(
-                                            "Stok: ${item.stock}",
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 10,
-                                              color: isLowStock
-                                                  ? Colors.red
-                                                  : textColor,
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                          child: const Icon(
+                                            Icons.inventory_2_outlined,
+                                            color: Colors.blueAccent,
+                                            size: 30,
                                           ),
                                         ),
-
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                item.name,
+                                                style: GoogleFonts.poppins(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: textColor,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                item.category,
+                                                style: GoogleFonts.poppins(
+                                                  color: subTextColor,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                formatCurrency(item.price),
+                                                style: GoogleFonts.poppins(
+                                                  color: Colors.green,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                         if (userRole == 'admin') ...[
                                           const SizedBox(height: 8),
                                           Row(
                                             children: [
                                               InkWell(
-                                                onTap: () =>
-                                                    _openForm(product: item),
+                                                onTap: () => _openForm(product: item),
                                                 child: Padding(
-                                                  padding: const EdgeInsets.all(
-                                                    4.0,
-                                                  ),
+                                                  padding: const EdgeInsets.all(4.0),
                                                   child: Icon(
                                                     Icons.edit_rounded,
                                                     size: 20,
@@ -360,15 +330,11 @@ class _ProductScreenState extends State<ProductScreen> {
                                               ),
                                               const SizedBox(width: 8),
                                               InkWell(
-                                                onTap: () =>
-                                                    _deleteProduct(item.id),
+                                                onTap: () => _deleteProduct(item.id),
                                                 child: Padding(
-                                                  padding: const EdgeInsets.all(
-                                                    4.0,
-                                                  ),
+                                                  padding: const EdgeInsets.all(4.0),
                                                   child: Icon(
-                                                    Icons
-                                                        .delete_outline_rounded,
+                                                    Icons.delete_outline_rounded,
                                                     size: 20,
                                                     color: Colors.red[400],
                                                   ),
@@ -377,17 +343,79 @@ class _ProductScreenState extends State<ProductScreen> {
                                             ],
                                           ),
                                         ] else ...[
-                                          const SizedBox(height: 20),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.end,
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10,
+                                                  vertical: 4,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: isLowStock
+                                                      ? Colors.red.withOpacity(0.1)
+                                                      : Colors.grey.withOpacity(0.1),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  border: isLowStock
+                                                      ? Border.all(
+                                                          color: Colors.red.withOpacity(0.5))
+                                                      : null,
+                                                ),
+                                                child: Text(
+                                                  "Stok: ${item.stock}",
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 10,
+                                                    color: isLowStock
+                                                        ? Colors.red
+                                                        : textColor,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              ElevatedButton(
+                                                onPressed: () {
+                                                  Provider.of<CartProvider>(
+                                                    context,
+                                                    listen: false,
+                                                  ).addItem(item);
+                                                  ScaffoldMessenger.of(context)
+                                                      .hideCurrentSnackBar();
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                          "${item.name} +1 ke Keranjang"),
+                                                      duration: const Duration(
+                                                          milliseconds: 500),
+                                                      backgroundColor:
+                                                          Colors.blueAccent,
+                                                    ),
+                                                  );
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.blueAccent,
+                                                  shape: const CircleBorder(),
+                                                  padding: const EdgeInsets.all(10),
+                                                  minimumSize: const Size(0, 0),
+                                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                ),
+                                                child: const Icon(
+                                                  Icons.add,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ],
                                       ],
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                              );
+                            },
+                          ),
               ),
             ],
           ),

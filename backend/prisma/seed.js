@@ -9,9 +9,13 @@ async function main() {
   const passwordHash = await bcrypt.hash('123456', 10);
 
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@toko.com' }, 
-    update: {}, 
-    create: {   
+    where: { email: 'admin@toko.com' },
+    update: {
+      name: 'Super Admin',
+      password: passwordHash,
+      role: 'admin',
+    },
+    create: {
       email: 'admin@toko.com',
       name: 'Super Admin',
       password: passwordHash,
@@ -22,7 +26,11 @@ async function main() {
 
   const staff = await prisma.user.upsert({
     where: { email: 'staff@toko.com' },
-    update: {},
+    update: {
+      name: 'Kasir Staff',
+      password: passwordHash,
+      role: 'staff',
+    },
     create: {
       email: 'staff@toko.com',
       name: 'Kasir Staff',
@@ -31,7 +39,7 @@ async function main() {
     },
   });
   console.log(`✅ Akun Staff siap: ${staff.email}`);
-  
+
   console.log('🚀 Seeding selesai!');
 }
 
