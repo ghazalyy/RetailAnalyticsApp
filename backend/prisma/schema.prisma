@@ -25,6 +25,7 @@ model Product {
   subCategory String
   price       Decimal  // Estimasi: Sales / Quantity
   stock       Int      @default(100) // Dummy stock
+  image       String?  @default("")
   orders      OrderItem[]
 }
 
