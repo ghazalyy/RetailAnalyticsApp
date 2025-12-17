@@ -11,9 +11,10 @@ router.get('/', async (req, res) => {
         const skip = (page - 1) * limit;
 
         const whereClause = search ? {
-            name: {
-                contains: search
-            }
+            OR: [
+                { name: { contains: search } },
+                { id: { contains: search } }
+            ]
         } : {};
 
         const [products, totalCount] = await prisma.$transaction([
@@ -34,10 +35,59 @@ router.get('/', async (req, res) => {
             totalItems: totalCount,
             data: products
         });
-
     } catch (error) {
-        console.error("Error fetching products:", error);
-        res.status(500).json({ error: "Gagal mengambil data produk" });
+        res.status(500).json({ error: "Gagal mengambil data" });
+    }
+});
+
+router.post('/', async (req, res) => {
+    try {
+        const { name, category, price, stock } = req.body;
+        const id = `PROD-${Date.now()}`; 
+        
+        const newProduct = await prisma.product.create({
+            data: { 
+                id, 
+                name, 
+                category, 
+                subCategory: "General", 
+                price: parseFloat(price), 
+                stock: parseInt(stock) 
+            }
+        });
+        res.json({ success: true, data: newProduct });
+    } catch (error) {
+        res.status(500).json({ error: "Gagal tambah produk" });
+    }
+});
+
+router.put('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, category, price, stock } = req.body;
+
+        const updatedProduct = await prisma.product.update({
+            where: { id },
+            data: { 
+                name, 
+                category, 
+                price: parseFloat(price), 
+                stock: parseInt(stock) 
+            }
+        });
+        res.json({ success: true, data: updatedProduct });
+    } catch (error) {
+        res.status(500).json({ error: "Gagal update produk" });
+    }
+});
+
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await prisma.product.delete({ where: { id } });
+        res.json({ success: true, message: "Produk dihapus" });
+    } catch (error) {
+        res.status(500).json({ error: "Gagal hapus produk" });
     }
 });
 

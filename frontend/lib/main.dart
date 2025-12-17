@@ -5,12 +5,13 @@ import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/product_screen.dart';
 import 'services/api_service.dart';
+import 'screens/splash_screen.dart';
+
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 void main() {
   runApp(const MyApp());
 }
-
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -24,34 +25,64 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: 'Retail App',
           themeMode: mode,
-          // --- Konfigurasi Tema Terang ---
+
           theme: ThemeData(
             brightness: Brightness.light,
             useMaterial3: true,
+            scaffoldBackgroundColor: const Color(0xFFF7F8FA),
             colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.blue, 
-              brightness: Brightness.light
+              seedColor: Colors.blueAccent,
+              brightness: Brightness.light,
+              surface: Colors.white,
             ),
             textTheme: GoogleFonts.poppinsTextTheme(),
             appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.white,
+              backgroundColor: Color(0xFFF7F8FA),
               elevation: 0,
-              iconTheme: IconThemeData(color: Colors.black),
-              titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+              iconTheme: IconThemeData(color: Colors.black87),
+              titleTextStyle: TextStyle(
+                color: Colors.black87,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+              backgroundColor: Colors.white,
+              selectedItemColor: Colors.blueAccent,
+              unselectedItemColor: Colors.grey,
+              elevation: 10,
             ),
           ),
-          // --- Konfigurasi Tema Gelap ---
+
           darkTheme: ThemeData(
             brightness: Brightness.dark,
             useMaterial3: true,
+            scaffoldBackgroundColor: const Color(0xFF121212),
             colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.blue, 
-              brightness: Brightness.dark
+              seedColor: Colors.blueAccent,
+              brightness: Brightness.dark,
+              surface: const Color(0xFF1E1E1E),
             ),
             textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
-            scaffoldBackgroundColor: const Color(0xFF121212),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFF121212),
+              elevation: 0,
+              iconTheme: IconThemeData(color: Colors.white),
+              titleTextStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+              backgroundColor: Color(0xFF1E1E1E),
+              selectedItemColor: Colors.blueAccent,
+              unselectedItemColor: Colors.grey,
+              elevation: 10,
+            ),
           ),
-          home: const CheckAuth(),
+
+          home: const SplashScreen(),
         );
       },
     );
@@ -78,13 +109,13 @@ class _CheckAuthState extends State<CheckAuth> {
     if (mounted) {
       if (isLoggedIn) {
         Navigator.pushReplacement(
-          context, 
-          MaterialPageRoute(builder: (_) => const MainLayout())
+          context,
+          MaterialPageRoute(builder: (_) => const MainLayout()),
         );
       } else {
         Navigator.pushReplacement(
-          context, 
-          MaterialPageRoute(builder: (_) => const LoginScreen())
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
       }
     }
@@ -95,6 +126,8 @@ class _CheckAuthState extends State<CheckAuth> {
     return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
+
+// --- LAYOUT UTAMA (NAVIGASI) ---
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
 
@@ -104,8 +137,8 @@ class MainLayout extends StatefulWidget {
 
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0;
-  String _userRole = "staff"; 
-  bool _isLoadingRole = true; 
+  String _userRole = "staff";
+  bool _isLoadingRole = true;
 
   @override
   void initState() {
@@ -124,15 +157,45 @@ class _MainLayoutState extends State<MainLayout> {
     });
   }
 
-  // Fungsi Logout
   void _logout() async {
-    await ApiService.logout(); 
-    if (mounted) {
-      Navigator.pushAndRemoveUntil(
-        context, 
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (route) => false 
-      );
+    bool confirm =
+        await showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(
+              "Konfirmasi Logout",
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            ),
+            content: Text(
+              "Apakah anda yakin ingin keluar aplikasi?",
+              style: GoogleFonts.poppins(),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text("Batal"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text(
+                  "Logout",
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (confirm) {
+      await ApiService.logout();
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
+      }
     }
   }
 
@@ -142,36 +205,30 @@ class _MainLayoutState extends State<MainLayout> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // --- LOGIKA MENU BERDASARKAN ROLE ---
     List<Widget> screens = [];
-    List<NavigationDestination> navDestinations = [];
+    List<BottomNavigationBarItem> navItems = [];
 
     if (_userRole == "admin") {
-      screens = [
-        const DashboardScreen(),
-        const ProductScreen(),
-      ];
-      navDestinations = const [
-        NavigationDestination(
-          icon: Icon(Icons.dashboard_outlined), 
-          selectedIcon: Icon(Icons.dashboard), 
-          label: 'Dashboard'
+      screens = [const DashboardScreen(), const ProductScreen()];
+      navItems = const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.dashboard_outlined),
+          activeIcon: Icon(Icons.dashboard),
+          label: 'Dashboard',
         ),
-        NavigationDestination(
-          icon: Icon(Icons.inventory_2_outlined), 
-          selectedIcon: Icon(Icons.inventory_2), 
-          label: 'Produk'
+        BottomNavigationBarItem(
+          icon: Icon(Icons.inventory_2_outlined),
+          activeIcon: Icon(Icons.inventory_2),
+          label: 'Produk',
         ),
       ];
     } else {
-      screens = [
-        const ProductScreen(),
-      ];
-      navDestinations = const [
-        NavigationDestination(
-          icon: Icon(Icons.inventory_2_outlined), 
-          selectedIcon: Icon(Icons.inventory_2), 
-          label: 'Kasir / Produk'
+      screens = [const ProductScreen()];
+      navItems = const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.point_of_sale),
+          activeIcon: Icon(Icons.point_of_sale),
+          label: 'Kasir & Produk',
         ),
       ];
     }
@@ -179,28 +236,36 @@ class _MainLayoutState extends State<MainLayout> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _userRole == 'admin' ? "Admin Panel" : "Staff Area",
+          _userRole == 'admin' ? "" : "Staff Area",
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.red),
+            icon: const Icon(Icons.logout_rounded, color: Colors.red),
             tooltip: "Logout",
             onPressed: _logout,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
         ],
       ),
-      
+
       body: screens[_currentIndex],
-      
-      bottomNavigationBar: navDestinations.length > 1 
-          ? NavigationBar(
-              selectedIndex: _currentIndex,
-              onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
-              destinations: navDestinations,
+
+      bottomNavigationBar: navItems.length > 1
+          ? BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (idx) => setState(() => _currentIndex = idx),
+              items: navItems,
+              type: BottomNavigationBarType.fixed,
+              showSelectedLabels: true,
+              showUnselectedLabels: true,
+              selectedLabelStyle: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+              unselectedLabelStyle: GoogleFonts.poppins(fontSize: 12),
             )
-          : null, 
+          : null,
     );
   }
 }

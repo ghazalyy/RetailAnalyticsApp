@@ -34,24 +34,6 @@ class ApiService {
     }
   }
 
-  static Future<bool> register(String name, String email, String password, String role) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/register'),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({
-          "name": name, 
-          "email": email, 
-          "password": password, 
-          "role": role
-        }),
-      );
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
-  }
-
   static Future<Map<String, dynamic>> fetchDashboard() async {
     final response = await http.get(Uri.parse('$baseUrl/dashboard'));
     if (response.statusCode == 200) {
@@ -70,6 +52,51 @@ class ApiService {
       return data.map((json) => Product.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load products');
+    }
+  }
+
+  static Future<bool> addProduct(String name, String category, double price, int stock) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/products'),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({
+          "name": name,
+          "category": category,
+          "price": price,
+          "stock": stock,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<bool> updateProduct(String id, String name, String category, double price, int stock) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/products/$id'),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({
+          "name": name,
+          "category": category,
+          "price": price,
+          "stock": stock,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<bool> deleteProduct(String id) async {
+    try {
+      final response = await http.delete(Uri.parse('$baseUrl/products/$id'));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
     }
   }
 
