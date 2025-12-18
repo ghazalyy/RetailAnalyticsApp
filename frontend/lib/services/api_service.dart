@@ -1,15 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/product_model.dart';
 
 class ApiService {
   static String get baseUrl {
-    if (kIsWeb) return "http://localhost:3000/api";
-    return "http://10.0.2.2:3000/api";
+    return "https://retail-analytics-app.vercel.app";
   }
 
   static Future<Map<String, String>> _getHeaders() async {
