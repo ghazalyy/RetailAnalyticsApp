@@ -29,6 +29,11 @@ app.get('/', (req, res) => {
   res.send('Server Retail Analytics berjalan! 🚀');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`Server running locally on port ${port}`);
+  });
+}
+
+module.exports = app;
