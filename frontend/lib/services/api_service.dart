@@ -7,7 +7,7 @@ import '../models/product_model.dart';
 
 class ApiService {
   static String get baseUrl {
-    return "https://retail-analytics-app.vercel.app";
+    return "https://retail-analytics-app-ghazalys-projects-cf68bf23.vercel.app/api";
   }
 
   static Future<Map<String, String>> _getHeaders() async {
