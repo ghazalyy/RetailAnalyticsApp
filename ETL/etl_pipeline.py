@@ -1,103 +1,98 @@
 import pandas as pd
-import json
 import os
 import numpy as np
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+from decimal import Decimal
 import datetime
 
-DB_USER = "root"
-DB_PASS = ""
-DB_HOST = "localhost"
-DB_PORT = "3306"
-DB_NAME = "db_retail"
+DB_USER = "rUqEgqmF6CJ4tGd.root"
+DB_PASS = "QcclYQGkGaT66GwG"
+DB_HOST = "gateway01.ap-southeast-1.prod.aws.tidbcloud.com"
+DB_PORT = "4000"
+DB_NAME = "test"
 
-DB_CONNECTION_STR = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DB_URL = (
+    f"mysql+pymysql://{DB_USER}:{DB_PASS}"
+    f"@{DB_HOST}:{DB_PORT}/{DB_NAME}?ssl_verify_cert=true"
+)
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
+engine = create_engine(DB_URL)
+with engine.connect() as conn:
+    print("✅ Connected to TiDB Cloud")
 
-try:
-    csv_file = os.path.join(script_dir, 'train.csv')
-    
-    if not os.path.exists(csv_file):
-        print(f"Error: File '{csv_file}' tidak ditemukan.")
-        exit()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CSV_PATH = os.path.join(BASE_DIR, "train.csv")
 
-    df = pd.read_csv(csv_file)
-    print(f"Data berhasil dimuat. Total baris: {len(df)}")
-    
-except Exception as e:
-    print(f"Error saat membaca file: {e}")
-    exit()
-
+df = pd.read_csv(CSV_PATH)
 df.columns = df.columns.str.strip()
 
-column_mapping = {
-    'Order ID': 'orderId',
-    'Order Date': 'orderDate',
-    'Customer ID': 'customerId',
-    'Segment': 'segment',
-    'Region': 'region',
-    'Product ID': 'productId',
-    'Product Name': 'productName',
-    'Category': 'category',
-    'Sub-Category': 'subCategory',
-    'Sales': 'sales'
-}
+df = df.rename(columns={
+    "Order ID": "orderId",
+    "Order Date": "orderDate",
+    "Customer ID": "customerId",
+    "Segment": "segment",
+    "Region": "region",
+    "Product ID": "productId",
+    "Product Name": "productName",
+    "Category": "category",
+    "Sub-Category": "subCategory",
+    "Sales": "sales"
+})
 
-df = df.rename(columns=column_mapping)
+df["quantity"] = np.random.randint(1, 6, len(df))
+df["profit"] = df["sales"] * np.random.uniform(0.1, 0.3, len(df))
+df["orderDate"] = pd.to_datetime(df["orderDate"], errors="coerce")
+df = df.dropna(subset=["orderDate"])
 
-df['quantity'] = np.random.randint(1, 6, df.shape[0])
-margin = np.random.uniform(0.10, 0.30, df.shape[0])
-df['profit'] = df['sales'] * margin
+engine = create_engine(DB_URL)
 
-df['orderDate'] = pd.to_datetime(df['orderDate'], dayfirst=True, errors='coerce')
+with engine.begin() as conn:
 
-invalid_dates = df['orderDate'].isna().sum()
-if invalid_dates > 0:
-    df = df.dropna(subset=['orderDate'])
+    products = df[[
+        "productId",
+        "productName",
+        "category",
+        "subCategory",
+        "sales",
+        "quantity"
+    ]].copy()
 
-try:
-    engine = create_engine(DB_CONNECTION_STR)
+    products["price"] = products["sales"] / products["quantity"]
+    products = products.drop_duplicates("productId")
 
-    products_df = df[['productId', 'productName', 'category', 'subCategory', 'sales', 'quantity']].copy()
-    products_df['price'] = products_df['sales'] / products_df['quantity']
-    products_df = products_df.drop_duplicates(subset=['productId'])
-    
-    products_to_db = products_df[['productId', 'productName', 'category', 'subCategory', 'price']].copy()
-    products_to_db.columns = ['id', 'name', 'category', 'subCategory', 'price']
-    products_to_db['stock'] = 100
-    
-    products_to_db.to_sql('Product', engine, if_exists='append', index=False, chunksize=1000)
-    print(f"Berhasil simpan {len(products_to_db)} produk.")
+    for _, p in products.iterrows():
+        conn.execute(text("""
+            INSERT INTO Product (id, name, category, subCategory, price, stock, image)
+            VALUES (:id, :name, :category, :subCategory, :price, 100, '')
+            ON DUPLICATE KEY UPDATE
+              price = VALUES(price)
+        """), {
+            "id": str(p["productId"]),
+            "name": p["productName"],
+            "category": p["category"],
+            "subCategory": p["subCategory"],
+            "price": Decimal(str(round(p["price"], 2)))
+        })
 
-    sales_to_db = df[['orderId', 'orderDate', 'customerId', 'segment', 'region', 
-                      'productId', 'category', 'sales', 'quantity', 'profit']].copy()
-    
-    sales_to_db.to_sql('Sale', engine, if_exists='append', index=False, chunksize=1000)
-    print(f"Berhasil simpan {len(sales_to_db)} transaksi.")
+    for _, s in df.iterrows():
+        conn.execute(text("""
+            INSERT INTO Sale
+            (orderId, orderDate, customerId, segment, region,
+             productId, category, sales, quantity, profit)
+            VALUES
+            (:orderId, :orderDate, :customerId, :segment, :region,
+             :productId, :category, :sales, :quantity, :profit)
+        """), {
+            "orderId": str(s["orderId"]),
+            "orderDate": s["orderDate"].to_pydatetime(),
+            "customerId": str(s["customerId"]),
+            "segment": s["segment"],
+            "region": s["region"],
+            "productId": str(s["productId"]),
+            "category": s["category"],
+            "sales": Decimal(str(round(s["sales"], 2))),
+            "quantity": int(s["quantity"]),
+            "profit": Decimal(str(round(s["profit"], 2)))
+        })
 
-except Exception as e:
-    print(f"Error Database: {e}")
-    exit()
-
-summary_data = {
-    "generated_at": str(datetime.datetime.now()),
-    "kpi": {
-        "total_sales": float(df['sales'].sum()),
-        "total_profit": float(df['profit'].sum()),
-        "total_orders": len(df)
-    },
-    "pie_chart_category": df.groupby('category')['sales'].sum().to_dict(),
-    "line_chart_trend": df.groupby(df['orderDate'].dt.to_period("M"))['sales'].sum().to_dict()
-}
-
-summary_data["line_chart_trend"] = {str(k): v for k, v in summary_data["line_chart_trend"].items()}
-
-output_dir = os.path.join(os.path.dirname(script_dir), 'backend')
-os.makedirs(output_dir, exist_ok=True)
-output_path = os.path.join(output_dir, 'dashboard_summary.json')
-
-with open(output_path, 'w') as f:
-    json.dump(summary_data, f, indent=4)
-
-print(f"Selesai! File JSON disimpan di: {output_path}")
+print("✅ ETL selesai — data sesuai schema Prisma")
