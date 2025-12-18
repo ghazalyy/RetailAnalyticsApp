@@ -5,7 +5,7 @@ const path = require('path');
 const dashboardRoutes = require('./src/routes/dashboard');
 const productRoutes = require('./src/routes/products');
 const orderRoutes = require('./src/routes/order');
-const authRoutes = require('./src/routes/auth');
+//const authRoutes = require('./src/routes/auth');
 const reportRoutes = require('./src/routes/reports');
 
 dotenv.config();
@@ -19,10 +19,17 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes
+try {
+    const authRoutes = require('./src/routes/auth');
+    app.use('/api/auth', authRoutes);
+    console.log("✅ Route Auth BERHASIL di-load");
+} catch (error) {
+    console.error("🔥 GAGAL LOAD AUTH ROUTES:", error);
+}
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/auth', authRoutes);
+//app.use('/api/auth', authRoutes);
 app.use('/api/reports', reportRoutes);
 
 app.get('/', (req, res) => {
