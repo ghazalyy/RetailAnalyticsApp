@@ -28,7 +28,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               if (barcode.rawValue != null) {
                 setState(() => isScanned = true);
                 Navigator.pop(context, barcode.rawValue);
-                break; 
+                break;
               }
             }
           }

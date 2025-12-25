@@ -11,16 +11,15 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-// Retail Analytics Color Scheme
 class RetailColors {
-  static const Color primaryDark = Color(0xFF0F172A);      // Deep navy
-  static const Color primaryAccent = Color(0xFF00D4FF);    // Cyan/Teal
-  static const Color secondaryAccent = Color(0xFF10B981);  // Emerald
-  static const Color successGreen = Color(0xFF34D399);     // Success green
-  static const Color cardBg = Color(0xFF1E293B);           // Slate
-  static const Color inputBg = Color(0xFF0F172A);          // Dark input
-  static const Color textPrimary = Color(0xFFE2E8F0);      // Light text
-  static const Color textSecondary = Color(0xFF94A3B8);    // Muted text
+  static const Color primaryDark = Color(0xFF0F172A);
+  static const Color primaryAccent = Color(0xFF00D4FF);
+  static const Color secondaryAccent = Color(0xFF10B981);
+  static const Color successGreen = Color(0xFF34D399);
+  static const Color cardBg = Color(0xFF1E293B);
+  static const Color inputBg = Color(0xFF0F172A);
+  static const Color textPrimary = Color(0xFFE2E8F0);
+  static const Color textSecondary = Color(0xFF94A3B8);
 }
 
 class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin {
@@ -62,7 +61,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
       ),
     );
 
-    // Kick-off animations when page appears
     _logoController.forward();
     _formController.forward();
   }
@@ -122,7 +120,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
           backgroundColor: RetailColors.primaryDark,
           body: Stack(
             children: [
-              // Gradient background
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -138,7 +135,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                 ),
               ),
 
-              // Animated stats background (subtle)
               Positioned.fill(
                 child: IgnorePointer(
                   ignoring: true,
@@ -156,7 +152,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                 ),
               ),
 
-              // Foreground content
               Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -164,7 +159,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Header with animated logo
                       Align(
                         alignment: Alignment.center,
                         child: AnimatedBuilder(
@@ -232,7 +226,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
 
                       const SizedBox(height: 48),
 
-                      // Animated form container
                       FadeTransition(
                         opacity: _formController,
                         child: SlideTransition(
@@ -285,7 +278,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
 
                       const SizedBox(height: 32),
 
-                      // Footer info
                       Text(
                         "Retail Analytics v1.0.0",
                         textAlign: TextAlign.center,
@@ -431,9 +423,8 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   }
 }
 
-// Animated background painter with red-to-green bar visualization
 class _StatsPainter extends CustomPainter {
-  final double progress; // 0..1 loop
+  final double progress;
 
   _StatsPainter({required this.progress});
 
@@ -443,7 +434,6 @@ class _StatsPainter extends CustomPainter {
       ..color = RetailColors.textSecondary.withOpacity(0.05)
       ..strokeWidth = 1;
 
-    // Draw grid
     const gridStep = 56.0;
     for (double x = 0; x <= size.width; x += gridStep) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), bgGrid);
@@ -452,7 +442,6 @@ class _StatsPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), bgGrid);
     }
 
-    // Animated bars - Red when low, Green when high
     final bars = 18;
     final barWidth = size.width / (bars * 2);
     final barPaint = Paint()..style = PaintingStyle.fill;
@@ -467,9 +456,8 @@ class _StatsPainter extends CustomPainter {
         const Radius.circular(8),
       );
 
-      // Color transitions: Red (low) to Green (high)
-      final brightRed = const Color(0xFFFF1744);    // Bright red
-      const brightGreen = Color(0xFF00E676);         // Bright green
+      final brightRed = const Color(0xFFFF1744);
+      const brightGreen = Color(0xFF00E676);
       
       barPaint.color = Color.lerp(
             brightRed.withOpacity(0.7),
@@ -480,7 +468,6 @@ class _StatsPainter extends CustomPainter {
       canvas.drawRRect(rRect, barPaint);
     }
 
-    // Animated line chart overlay - follows bar colors
     final path = Path();
     final points = 24;
     for (int i = 0; i <= points; i++) {

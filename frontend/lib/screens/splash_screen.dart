@@ -12,7 +12,6 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-// Retail Analytics Color Scheme
 class RetailColorsSplash {
   static const Color primaryDark = Color(0xFF0F172A);
   static const Color primaryAccent = Color(0xFF00D4FF);
@@ -80,7 +79,6 @@ class _SplashScreenState extends State<SplashScreen>
     _progressController.forward();
     _chartController.forward();
 
-    // Start text animation after logo completes
     _logoController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         _textController.forward();
@@ -122,7 +120,6 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: RetailColorsSplash.primaryDark,
       body: Stack(
         children: [
-          // Background gradient
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -138,7 +135,6 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          // Animated candlestick chart background
           Positioned.fill(
             child: AnimatedBuilder(
               animation: _chartController,
@@ -150,12 +146,10 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          // Main content
           Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-            // Animated logo with position movement
               AnimatedBuilder(
                 animation: _logoController,
                 builder: (context, _) {
@@ -200,7 +194,6 @@ class _SplashScreenState extends State<SplashScreen>
               ),
               const SizedBox(height: 40),
 
-              // App Title with typing animation
               AnimatedBuilder(
                 animation: _textCharCount,
                 builder: (context, _) {
@@ -227,66 +220,64 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-// Candlestick chart painter for animated background
 class _CandlestickPainter extends CustomPainter {
-  final double progress; // 0..1
+  final double progress;
 
   _CandlestickPainter({required this.progress});
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Define chart path data with more realistic price movements
     final List<Map<String, double>> candles = [
-      {'open': 0.48, 'high': 0.52, 'low': 0.45, 'close': 0.47}, // Red with long wicks
-      {'open': 0.47, 'high': 0.48, 'low': 0.40, 'close': 0.42}, // Very long red
-      {'open': 0.42, 'high': 0.45, 'low': 0.38, 'close': 0.43}, // Long green with lower wick
-      {'open': 0.43, 'high': 0.46, 'low': 0.41, 'close': 0.45}, // Green
-      {'open': 0.45, 'high': 0.47, 'low': 0.44, 'close': 0.46}, // Small green
-      {'open': 0.46, 'high': 0.48, 'low': 0.45, 'close': 0.47}, // Small green
-      {'open': 0.47, 'high': 0.49, 'low': 0.46, 'close': 0.48}, // Green
-      {'open': 0.48, 'high': 0.54, 'low': 0.47, 'close': 0.53}, // Very long green
-      {'open': 0.53, 'high': 0.56, 'low': 0.52, 'close': 0.54}, // Green
-      {'open': 0.54, 'high': 0.60, 'low': 0.53, 'close': 0.58}, // Very long green
-      {'open': 0.58, 'high': 0.61, 'low': 0.57, 'close': 0.60}, // Green
-      {'open': 0.60, 'high': 0.65, 'low': 0.55, 'close': 0.56}, // Long red with huge wick
-      {'open': 0.56, 'high': 0.60, 'low': 0.52, 'close': 0.54}, // Red
-      {'open': 0.54, 'high': 0.56, 'low': 0.53, 'close': 0.55}, // Small green
-      {'open': 0.55, 'high': 0.57, 'low': 0.54, 'close': 0.56}, // Small green
-      {'open': 0.56, 'high': 0.58, 'low': 0.55, 'close': 0.57}, // Small green
-      {'open': 0.57, 'high': 0.61, 'low': 0.56, 'close': 0.60}, // Long green
-      {'open': 0.60, 'high': 0.62, 'low': 0.59, 'close': 0.61}, // Small green
-      {'open': 0.61, 'high': 0.63, 'low': 0.60, 'close': 0.62}, // Small green
-      {'open': 0.62, 'high': 0.67, 'low': 0.61, 'close': 0.66}, // Long green
-      {'open': 0.66, 'high': 0.70, 'low': 0.63, 'close': 0.64}, // Red with long upper wick
-      {'open': 0.64, 'high': 0.66, 'low': 0.58, 'close': 0.60}, // Long red
-      {'open': 0.60, 'high': 0.62, 'low': 0.56, 'close': 0.58}, // Red
-      {'open': 0.58, 'high': 0.60, 'low': 0.55, 'close': 0.57}, // Red
-      {'open': 0.57, 'high': 0.59, 'low': 0.56, 'close': 0.58}, // Small green
-      {'open': 0.58, 'high': 0.59, 'low': 0.55, 'close': 0.56}, // Red with lower wick
-      {'open': 0.56, 'high': 0.58, 'low': 0.52, 'close': 0.54}, // Red
-      {'open': 0.54, 'high': 0.58, 'low': 0.52, 'close': 0.57}, // Long green hammer
-      {'open': 0.57, 'high': 0.63, 'low': 0.56, 'close': 0.62}, // Very long green
-      {'open': 0.62, 'high': 0.65, 'low': 0.61, 'close': 0.64}, // Green
-      {'open': 0.64, 'high': 0.67, 'low': 0.63, 'close': 0.66}, // Green
-      {'open': 0.66, 'high': 0.69, 'low': 0.65, 'close': 0.68}, // Green
-      {'open': 0.68, 'high': 0.74, 'low': 0.67, 'close': 0.72}, // Very long green
-      {'open': 0.72, 'high': 0.75, 'low': 0.71, 'close': 0.73}, // Green
-      {'open': 0.73, 'high': 0.74, 'low': 0.70, 'close': 0.71}, // Red
-      {'open': 0.71, 'high': 0.75, 'low': 0.70, 'close': 0.74}, // Long green
-      {'open': 0.74, 'high': 0.77, 'low': 0.73, 'close': 0.76}, // Green
-      {'open': 0.76, 'high': 0.82, 'low': 0.75, 'close': 0.80}, // Very long green
-      {'open': 0.80, 'high': 0.83, 'low': 0.79, 'close': 0.82}, // Green
-      {'open': 0.82, 'high': 0.88, 'low': 0.81, 'close': 0.86}, // Very long green
-      {'open': 0.86, 'high': 0.89, 'low': 0.85, 'close': 0.87}, // Green
-      {'open': 0.87, 'high': 0.90, 'low': 0.83, 'close': 0.84}, // Red with wicks
-      {'open': 0.84, 'high': 0.86, 'low': 0.78, 'close': 0.80}, // Long red
-      {'open': 0.80, 'high': 0.82, 'low': 0.79, 'close': 0.81}, // Small green
-      {'open': 0.81, 'high': 0.83, 'low': 0.80, 'close': 0.82}, // Small green
-      {'open': 0.82, 'high': 0.86, 'low': 0.81, 'close': 0.85}, // Long green
-      {'open': 0.85, 'high': 0.92, 'low': 0.84, 'close': 0.90}, // Very long green
-      {'open': 0.90, 'high': 0.94, 'low': 0.89, 'close': 0.92}, // Green
-      {'open': 0.92, 'high': 0.96, 'low': 0.91, 'close': 0.94}, // Green
-      {'open': 0.94, 'high': 0.98, 'low': 0.90, 'close': 0.92}, // Red with huge upper wick
+      {'open': 0.48, 'high': 0.52, 'low': 0.45, 'close': 0.47},
+      {'open': 0.47, 'high': 0.48, 'low': 0.40, 'close': 0.42},
+      {'open': 0.42, 'high': 0.45, 'low': 0.38, 'close': 0.43},
+      {'open': 0.43, 'high': 0.46, 'low': 0.41, 'close': 0.45},
+      {'open': 0.45, 'high': 0.47, 'low': 0.44, 'close': 0.46},
+      {'open': 0.46, 'high': 0.48, 'low': 0.45, 'close': 0.47},
+      {'open': 0.47, 'high': 0.49, 'low': 0.46, 'close': 0.48},
+      {'open': 0.48, 'high': 0.54, 'low': 0.47, 'close': 0.53},
+      {'open': 0.53, 'high': 0.56, 'low': 0.52, 'close': 0.54},
+      {'open': 0.54, 'high': 0.60, 'low': 0.53, 'close': 0.58},
+      {'open': 0.58, 'high': 0.61, 'low': 0.57, 'close': 0.60},
+      {'open': 0.60, 'high': 0.65, 'low': 0.55, 'close': 0.56},
+      {'open': 0.56, 'high': 0.60, 'low': 0.52, 'close': 0.54},
+      {'open': 0.54, 'high': 0.56, 'low': 0.53, 'close': 0.55},
+      {'open': 0.55, 'high': 0.57, 'low': 0.54, 'close': 0.56},
+      {'open': 0.56, 'high': 0.58, 'low': 0.55, 'close': 0.57},
+      {'open': 0.57, 'high': 0.61, 'low': 0.56, 'close': 0.60},
+      {'open': 0.60, 'high': 0.62, 'low': 0.59, 'close': 0.61},
+      {'open': 0.61, 'high': 0.63, 'low': 0.60, 'close': 0.62},
+      {'open': 0.62, 'high': 0.67, 'low': 0.61, 'close': 0.66},
+      {'open': 0.66, 'high': 0.70, 'low': 0.63, 'close': 0.64},
+      {'open': 0.64, 'high': 0.66, 'low': 0.58, 'close': 0.60},
+      {'open': 0.60, 'high': 0.62, 'low': 0.56, 'close': 0.58},
+      {'open': 0.58, 'high': 0.60, 'low': 0.55, 'close': 0.57},
+      {'open': 0.57, 'high': 0.59, 'low': 0.56, 'close': 0.58},
+      {'open': 0.58, 'high': 0.59, 'low': 0.55, 'close': 0.56},
+      {'open': 0.56, 'high': 0.58, 'low': 0.52, 'close': 0.54},
+      {'open': 0.54, 'high': 0.58, 'low': 0.52, 'close': 0.57},
+      {'open': 0.57, 'high': 0.63, 'low': 0.56, 'close': 0.62},
+      {'open': 0.62, 'high': 0.65, 'low': 0.61, 'close': 0.64},
+      {'open': 0.64, 'high': 0.67, 'low': 0.63, 'close': 0.66},
+      {'open': 0.66, 'high': 0.69, 'low': 0.65, 'close': 0.68},
+      {'open': 0.68, 'high': 0.74, 'low': 0.67, 'close': 0.72},
+      {'open': 0.72, 'high': 0.75, 'low': 0.71, 'close': 0.73},
+      {'open': 0.73, 'high': 0.74, 'low': 0.70, 'close': 0.71},
+      {'open': 0.71, 'high': 0.75, 'low': 0.70, 'close': 0.74},
+      {'open': 0.74, 'high': 0.77, 'low': 0.73, 'close': 0.76},
+      {'open': 0.76, 'high': 0.82, 'low': 0.75, 'close': 0.80},
+      {'open': 0.80, 'high': 0.83, 'low': 0.79, 'close': 0.82},
+      {'open': 0.82, 'high': 0.88, 'low': 0.81, 'close': 0.86},
+      {'open': 0.86, 'high': 0.89, 'low': 0.85, 'close': 0.87},
+      {'open': 0.87, 'high': 0.90, 'low': 0.83, 'close': 0.84},
+      {'open': 0.84, 'high': 0.86, 'low': 0.78, 'close': 0.80},
+      {'open': 0.80, 'high': 0.82, 'low': 0.79, 'close': 0.81},
+      {'open': 0.81, 'high': 0.83, 'low': 0.80, 'close': 0.82},
+      {'open': 0.82, 'high': 0.86, 'low': 0.81, 'close': 0.85},
+      {'open': 0.85, 'high': 0.92, 'low': 0.84, 'close': 0.90},
+      {'open': 0.90, 'high': 0.94, 'low': 0.89, 'close': 0.92},
+      {'open': 0.92, 'high': 0.96, 'low': 0.91, 'close': 0.94},
+      {'open': 0.94, 'high': 0.98, 'low': 0.90, 'close': 0.92}
     ];
 
     final visibleCount = (candles.length * progress).toInt();
@@ -296,7 +287,6 @@ class _CandlestickPainter extends CustomPainter {
     final brightRed = const Color(0xFFFF1744);
     const brightGreen = Color(0xFF00E676);
 
-    // Draw visible candlesticks
     for (int i = 0; i < visibleCount; i++) {
       final candle = candles[i];
       final x = (i + 1) * candleWidth;
@@ -308,7 +298,6 @@ class _CandlestickPainter extends CustomPainter {
       
       final isBullish = close >= open;
       
-      // Calculate positions from bottom
       final openY = size.height - (open * size.height * 0.65) - 60;
       final closeY = size.height - (close * size.height * 0.65) - 60;
       final highY = size.height - (high * size.height * 0.65) - 60;
@@ -327,23 +316,19 @@ class _CandlestickPainter extends CustomPainter {
         ..strokeWidth = 1.5
         ..color = (isBullish ? brightGreen : brightRed).withOpacity(0.45);
 
-      // Draw upper wick
       canvas.drawLine(
         Offset(x, highY),
         Offset(x, bodyTop),
         wickPaint,
       );
       
-      // Draw lower wick
       canvas.drawLine(
         Offset(x, bodyBottom),
         Offset(x, lowY),
         wickPaint,
       );
 
-      // Draw candle body
       if (bodyHeight < 2) {
-        // Doji - draw as a line
         canvas.drawLine(
           Offset(x - candleWidth * 0.3, (bodyTop + bodyBottom) / 2),
           Offset(x + candleWidth * 0.3, (bodyTop + bodyBottom) / 2),
@@ -363,7 +348,6 @@ class _CandlestickPainter extends CustomPainter {
       }
     }
 
-    // Draw connecting line for overall trend
     if (visibleCount > 1) {
       final path = Path();
       for (int i = 0; i < visibleCount; i++) {

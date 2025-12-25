@@ -9,15 +9,12 @@ import 'screens/product_screen.dart';
 import 'services/api_service.dart';
 import 'screens/splash_screen.dart';
 
-
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 void main() {
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => CartProvider()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => CartProvider())],
       child: const MyApp(),
     ),
   );
@@ -67,15 +64,15 @@ class MyApp extends StatelessWidget {
           darkTheme: ThemeData(
             brightness: Brightness.dark,
             useMaterial3: true,
-            scaffoldBackgroundColor: const Color(0xFF121212),
+            scaffoldBackgroundColor: const Color(0xFF0F0F0F),
             colorScheme: ColorScheme.fromSeed(
               seedColor: Colors.blueAccent,
               brightness: Brightness.dark,
-              surface: const Color(0xFF1E1E1E),
+              surface: const Color(0xFF1A1A1A),
             ),
             textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
             appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF121212),
+              backgroundColor: Color(0xFF0F0F0F),
               elevation: 0,
               iconTheme: IconThemeData(color: Colors.white),
               titleTextStyle: TextStyle(
@@ -85,7 +82,7 @@ class MyApp extends StatelessWidget {
               ),
             ),
             bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-              backgroundColor: Color(0xFF1E1E1E),
+              backgroundColor: Color(0xFF1A1A1A),
               selectedItemColor: Colors.blueAccent,
               unselectedItemColor: Colors.grey,
               elevation: 10,
@@ -137,7 +134,6 @@ class _CheckAuthState extends State<CheckAuth> {
   }
 }
 
-// --- LAYOUT UTAMA (NAVIGASI) ---
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
 
@@ -147,6 +143,7 @@ class MainLayout extends StatefulWidget {
 
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0;
+  int _previousIndex = 0;
   String _userRole = "staff";
   bool _isLoadingRole = true;
 
@@ -259,12 +256,19 @@ class _MainLayoutState extends State<MainLayout> {
         ],
       ),
 
-      body: screens[_currentIndex],
+      body: _PageTransition(
+        currentIndex: _currentIndex,
+        previousIndex: _previousIndex,
+        screens: screens,
+      ),
 
       bottomNavigationBar: navItems.length > 1
           ? BottomNavigationBar(
               currentIndex: _currentIndex,
-              onTap: (idx) => setState(() => _currentIndex = idx),
+              onTap: (idx) => setState(() {
+                _previousIndex = _currentIndex;
+                _currentIndex = idx;
+              }),
               items: navItems,
               type: BottomNavigationBarType.fixed,
               showSelectedLabels: true,
@@ -279,3 +283,80 @@ class _MainLayoutState extends State<MainLayout> {
     );
   }
 }
+
+class _PageTransition extends StatefulWidget {
+  final int currentIndex;
+  final int previousIndex;
+  final List<Widget> screens;
+
+  const _PageTransition({
+    required this.currentIndex,
+    required this.previousIndex,
+    required this.screens,
+  });
+
+  @override
+  State<_PageTransition> createState() => _PageTransitionState();
+}
+
+class _PageTransitionState extends State<_PageTransition>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _controller.forward();
+  }
+
+  @override
+  void didUpdateWidget(_PageTransition oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentIndex != widget.currentIndex) {
+      _controller.forward(from: 0.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isForward = widget.currentIndex > widget.previousIndex;
+
+    return Stack(
+      children: [
+        SlideTransition(
+          position: Tween<Offset>(
+            begin: Offset.zero,
+            end: Offset(isForward ? -0.4 : 0.4, 0),
+          ).animate(
+            CurvedAnimation(parent: _controller, curve: Curves.easeInCubic),
+          ),
+          child: SizedBox.expand(
+            child: widget.screens[widget.previousIndex],
+          ),
+        ),
+        SlideTransition(
+          position: Tween<Offset>(
+            begin: Offset(isForward ? 0.4 : -0.4, 0),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+          ),
+          child: SizedBox.expand(
+            child: widget.screens[widget.currentIndex],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
